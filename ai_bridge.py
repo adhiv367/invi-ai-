@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import json
 import requests
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
