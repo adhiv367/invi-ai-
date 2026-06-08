@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invi Creation - Shop Assistant</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+#chat-wrap { width: 100%; max-width: 480px; height: 100vh; max-height: 700px; display: flex; flex-direction: column; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+#header { background: #D85A30; padding: 16px; display: flex; align-items: center; gap: 12px; }
+#header .avatar { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #D85A30; font-size: 14px; }
+#header .info p { color: #fff; font-weight: bold; font-size: 15px; }
+#header .info span { color: #ffd5c8; font-size: 12px; }
+#messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; }
+.msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+.bot { background: #fff; color: #333; border: 1px solid #eee; border-bottom-left-radius: 4px; align-self: flex-start; }
+.user { background: #D85A30; color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+.typing { display: flex; gap: 4px; padding: 12px 14px; }
+.typing span { width: 7px; height: 7px; border-radius: 50%; background: #ccc; animation: bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12px; padding: 5px 12px; border: 1px solid #D85A30; border-radius: 20px; cursor: pointer; color: #D85A30; background: #fff; }
+.chip:hover { background: #fff3f0; }
+#input-row { padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; background: #fff; }
+#msg-input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 24px; font-size: 14px; outline: none; }
+#msg-input:focus { border-color: #D85A30; }
+#send-btn { width: 42px; height: 42px; border-radius: 50%; background: #D85A30; border: none; cursor: pointer; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+#send-btn:disabled { opacity: 0.5; }
+</style>
+</head>
+<body>
+<div id="chat-wrap">
+  <div id="header">
+    <div class="avatar">IC</div>
+    <div class="info">
+      <p>Invi Creation</p>
+      <span>● Online — Pure Cotton Boutique</span>
+    </div>
+  </div>
+  <div id="messages">
+    <div class="msg bot">Hi! Welcome to Invi Creation 👗 We sell pure cotton kurthi, kurthi sets and salwar sets starting from Rs.725. Sizes XS to 5XL. How can I help you?</div>
+    <div class="chips">
+      <span class="chip" onclick="quickSend('Show me kurthi sets')">Kurthi sets</span>
+      <span class="chip" onclick="quickSend('Show me salwar sets')">Salwar sets</span>
+      <span class="chip" onclick="quickSend('What is your price range?')">Price range</span>
+      <span class="chip" onclick="quickSend('Available sizes?')">Sizes</span>
+    </div>
+  </div>
+  <div id="input-row">
+    <input id="msg-input" type="text" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendMsg()" />
+    <button id="send-btn" onclick="sendMsg()">&#9658;</button>
+  </div>
+</div>
+<script>
+const API = "https://invi-ai.onrender.com/ai";
+const msgsEl = document.getElementById("messages");
+const input = document.getElementById("msg-input");
+const btn = document.getElementById("send-btn");
+
+function quickSend(t) { input.value = t; sendMsg(); }
+
+function addMsg(text, role) {
+  const d = document.createElement("div");
+  d.className = "msg " + role;
+  d.textContent = text;
+  msgsEl.appendChild(d);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function showTyping() {
+  const d = document.createElement("div");
+  d.className = "msg bot typing"; d.id = "typing";
+  d.innerHTML = "<span></span><span></span><span></span>";
+  msgsEl.appendChild(d);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+async function sendMsg() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ""; btn.disabled = true;
+  addMsg(text, "user");
+  showTyping();
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+    const data = await res.json();
+    document.getElementById("typing")?.remove();
+    addMsg(data.reply || "Sorry, please try again.", "bot");
+  } catch(e) {
+    document.getElementById("typing")?.remove();
+    addMsg("Connection error. Please try again.", "bot");
+  }
+  btn.disabled = false;
+  input.focus();
+}
+</script>
+</body>
+</html>
