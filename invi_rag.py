@@ -1,8 +1,7 @@
 import json
 import requests
-
-GROQ_API_KEY = "GROQ_API_KEY"
-
+import os
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 COMPANY_INFO = """
 Company: Invi Creation
 Type: Women's Boutique
